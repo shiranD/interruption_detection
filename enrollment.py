@@ -23,15 +23,15 @@ def enroll_speakers(names):
         # Auto-iterate through all files that matches this query
         file_list = drive.ListFile({'q': "'1vqIVEKdWVvZf3KBVgdOJ8_KbuzM_dndK' in parents"}).GetList()
         for file1 in file_list:
-          print('title: %s, id: %s' % (file1['title'], file1['id']))
+          #print('title: %s, id: %s' % (file1['title'], file1['id']))
           if file1['title'] == file0:
               fname = os.path.join(local_download_path, file1['title'])
-              print('downloading to {}'.format(fname))
+              #print('downloading to {}'.format(fname))
               f_ = drive.CreateFile({'id': file1['id']})
               f_.GetContentFile(fname)
               signal, fs = torchaudio.load(fname)
               embeddings = classifier.encode_batch(signal)
               speakers_dict[file0]=embeddings
-              print("is", fs)
+              #print("is", fs)
               break
     return speakers_dict

@@ -16,6 +16,7 @@ cos = nn.CosineSimilarity(dim=1, eps=1e-6)
 wav_folder = "../wav/"
 transcripts_folder = "../transcripts/"
 vad = VADer()
+fixed_th = 1
 
 for wav_file in os.listdir(wav_folder):
     print(wav_file)
@@ -37,8 +38,6 @@ for wav_file in os.listdir(wav_folder):
                    names.append(name)
             names = set(names)
             enroll_dict = enroll_speakers(names)
-        print(enroll_dict)
-        sys.exit()
         # prep wav path 
         wav = os.path.join(wav_folder, wav_file)
         # apply vad
@@ -47,19 +46,24 @@ for wav_file in os.listdir(wav_folder):
         signal, fs = torchaudio.load(wav)
         
         for (begin1, end1), (begin2, end2)  in zip(boundaries, boundaries[1:]):
-            # apply x-vector for diarization
-            pdb.set_trace()
             # below a fixed threshold
-            if begin2 - end1 < threshold:
+            if begin2 - end1 < fixed_th:
+                # apply x-vector for diarization
                 embeddings1 = classifier.encode_batch(signal[0][round(float(begin1))*fs: round(float(end1))*fs])
                 embeddings2 = classifier.encode_batch(signal[0][round(float(begin2))*fs: round(float(end2))*fs])
                 # measure distance from the dictionary
-                sp1 = []
-                sp2 = []
-                for speaker in speakers:
-                    sp1.append(cos(speaker, embeddings1))               
-                    sp2.append(cos(speaker, embeddings2))
+                real_speakers = []
+                for emb in [embeddings1, embeddings2]:
+                    time_step_emb = []
+                    speakers = []
+                    # which speaker is closer to a particular embedding
+                    for speaker in enroll_dict.keys():
+                        time_step_emb.append(cos(enroll_dict[speaker][0], emb[0]))
+                        speakers.append(speaker)
+                    # choose the real speaker who was closer to dict 'speaker' (or is closer to 1)
+                    real_speakers.append(speakers[time_step_emb.index(max(time_step_emb))])
+                    
                 # if are not the same speaker
-                if sp1.index(min(sp1)) != sp2.index(min(sp2)):
-                    print("{D[argmin(sp2)]} interrupted to {D[argmin(sp1)]} at {begin} second")
+                if real_speakers[0] != real_speakers[1]:
+                    print(f"{real_speakers[0]} interrupted to {real_speakers[1]} at {begin2} second")
 
