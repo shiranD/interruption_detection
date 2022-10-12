@@ -8,6 +8,12 @@ from os.path import exists as file_exists
 import pdb
 from vad_class import VADer
 from enrollment import enroll_speakers
+import math
+
+def convert2ms(tensor):
+    floats = float(tensor)
+    splitter = math.modf(floats)
+    return round(splitter[0]*100+splitter[1]*1000)
 
 classifier = EncoderClassifier.from_hparams(source="speechbrain/spkrec-xvect-voxceleb", savedir="pretrained_models/spkrec-xvect-voxceleb")
 
@@ -37,33 +43,41 @@ for wav_file in os.listdir(wav_folder):
                    name = 'enrollment_'+name+'.wav'
                    names.append(name)
             names = set(names)
-            enroll_dict = enroll_speakers(names)
+        #    enroll_dict = enroll_speakers(names)
         # prep wav path 
         wav = os.path.join(wav_folder, wav_file)
         # apply vad
         boundaries = vad.chunk(wav)
         # get the sample rate
         signal, fs = torchaudio.load(wav)
-        
+        fs = fs//1000
         for (begin1, end1), (begin2, end2)  in zip(boundaries, boundaries[1:]):
             # below a fixed threshold
             if begin2 - end1 < fixed_th:
+                #print(begin1, end1, begin2, end2)
+                begin1 = convert2ms(begin1)
+                begin2 = convert2ms(begin2)
+                end1 = convert2ms(end1)
+                end2 = convert2ms(end2)
                 # apply x-vector for diarization
-                embeddings1 = classifier.encode_batch(signal[0][round(float(begin1))*fs: round(float(end1))*fs])
-                embeddings2 = classifier.encode_batch(signal[0][round(float(begin2))*fs: round(float(end2))*fs])
+                #print(begin1, end1, begin2, end2)
+                print(begin1, end1, begin1*fs, end1*fs, signal[0][begin1*fs: end1*fs])
+                print(begin2, end2, begin2*fs, end2*fs, signal[0][begin2*fs: end2*fs])
+#                embeddings1 = classifier.encode_batch(signal[0][round(float(begin1))*fs: round(float(end1))*fs])
+#                embeddings2 = classifier.encode_batch(signal[0][round(float(begin2))*fs: round(float(end2))*fs])
                 # measure distance from the dictionary
-                real_speakers = []
-                for emb in [embeddings1, embeddings2]:
-                    time_step_emb = []
-                    speakers = []
-                    # which speaker is closer to a particular embedding
-                    for speaker in enroll_dict.keys():
-                        time_step_emb.append(cos(enroll_dict[speaker][0], emb[0]))
-                        speakers.append(speaker)
-                    # choose the real speaker who was closer to dict 'speaker' (or is closer to 1)
-                    real_speakers.append(speakers[time_step_emb.index(max(time_step_emb))])
-                    
-                # if are not the same speaker
-                if real_speakers[0] != real_speakers[1]:
-                    print(f"{real_speakers[0]} interrupted to {real_speakers[1]} at {begin2} second")
+              #  real_speakers = []
+              #  for emb in [embeddings1, embeddings2]:
+              #      time_step_emb = []
+              #      speakers = []
+              #      # which speaker is closer to a particular embedding
+              #      for speaker in enroll_dict.keys():
+              #          time_step_emb.append(cos(enroll_dict[speaker][0], emb[0]))
+              #          speakers.append(speaker)
+              #      # choose the real speaker who was closer to dict 'speaker' (or is closer to 1)
+              #      real_speakers.append(speakers[time_step_emb.index(max(time_step_emb))])
+             #       
+             #   # if are not the same speaker
+             #   if real_speakers[0] != real_speakers[1]:
+             #       print(f"{real_speakers[0]} interrupted to {real_speakers[1]} at {begin2} second")
 
