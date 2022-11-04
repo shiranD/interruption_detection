@@ -100,5 +100,5 @@ for xl_file in os.listdir(xl_folder):
             interruption_details, overlap = vad.process_vad(chunk, fs, enroll_dict)
             # if are not the same speaker
             if overlap:
-                f.write(f"{interruption_details[0]} {interruption_details[1]} {(interruption_details[2])}\n")
+                f.write(f"{interruption_details[0]} {interruption_details[1]} {interruption_details[2]}\n")
 
