@@ -4,7 +4,7 @@ import os
 from os.path import exists
 
 def enroll_speakers(names):
-    local_download_path="/Users/shdu9019/Documents/interruption_detection/interruption_detection/enr_files"
+    local_download_path="../enr_files"
     classifier = EncoderClassifier.from_hparams(source="speechbrain/spkrec-xvect-voxceleb", savedir="pretrained_models/spkrec-xvect-voxceleb")
     speakers_dict = {}
     for file0 in names:
