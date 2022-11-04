@@ -8,16 +8,11 @@ from os.path import exists as file_exists
 import pdb
 from vad_class import VADer
 from enrollment import enroll_speakers
-import math
 from process_xl import processXL
 from matplotlib import pyplot as plt
 from g_files import g_drive_access
 from csv import reader
 
-def convert2ms(tensor):
-    floats = float(tensor)
-    splitter = math.modf(floats)
-    return round(splitter[0]+splitter[1]*60)
 
 classifier = EncoderClassifier.from_hparams(source="speechbrain/spkrec-xvect-voxceleb", savedir="pretrained_models/spkrec-xvect-voxceleb")
 
