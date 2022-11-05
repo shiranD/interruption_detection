@@ -33,15 +33,6 @@ for xl_file in os.listdir(xl_folder):
     base_name = base_name.split(".xlsx")[0] 
     # for every annotated file grab annotations by time and compute length
     lens, interruptors, onsets = processXL(os.path.join(xl_folder, xl_file))
-#fig, ax = plt.subplots(figsize =(10, 7))
-#ax.hist(b_len)
-#ax.set_title("interruption overlap")
-#plt.savefig("all_lens")
-#fig, ax = plt.subplots(figsize =(10, 7))
-#ax.hist(b_ons)
-#ax.set_title("interruption time")
-#plt.savefig("all_onsets")
-#sys.exit()
     # find wav and transcript
     wav_file = base_name+".wav"
     # search for it through gdrive
@@ -72,7 +63,6 @@ for xl_file in os.listdir(xl_folder):
         f.write("\n")
         # enroll participants
         names = []
-        print(txt_folder, txt_file)
         with open(os.path.join(txt_folder, txt_file), "r") as g:
             for line in g.readlines():
                line = line.replace("Student ", "student-")
@@ -99,3 +89,12 @@ for xl_file in os.listdir(xl_folder):
             if overlap:
                 f.write(f"{interruption_details[0]} {interruption_details[1]} {interruption_details[2]}\n")
 
+#fig, ax = plt.subplots(figsize =(10, 7))
+#ax.hist(b_len)
+#ax.set_title("interruption overlap")
+#plt.savefig("all_lens")
+#fig, ax = plt.subplots(figsize =(10, 7))
+#ax.hist(b_ons)
+#ax.set_title("interruption time")
+#plt.savefig("all_onsets")
+#sys.exit()
