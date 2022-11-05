@@ -1,4 +1,3 @@
-from torch import nn
 import torchaudio
 import re
 import os
@@ -13,8 +12,6 @@ from g_files import g_drive_access
 from csv import reader
 
 classifier = EncoderClassifier.from_hparams(source="speechbrain/spkrec-xvect-voxceleb", savedir="pretrained_models/spkrec-xvect-voxceleb")
-
-cos = nn.CosineSimilarity(dim=1, eps=1e-6)
 
 wav_folder = "../wav/"
 txt_folder = "../transcripts/"
