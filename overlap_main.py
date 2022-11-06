@@ -11,8 +11,6 @@ from matplotlib import pyplot as plt
 from g_files import g_drive_access
 from csv import reader
 
-classifier = EncoderClassifier.from_hparams(source="speechbrain/spkrec-xvect-voxceleb", savedir="pretrained_models/spkrec-xvect-voxceleb")
-
 wav_folder = "../wav/"
 txt_folder = "../transcripts/"
 vad = VADer()
@@ -37,7 +35,6 @@ for xl_file in os.listdir(xl_folder):
     wav_file = base_name+".wav"
     # search for it through gdrive
     wav_file = g_drive_access(wav_folder, wav_file)
-    print("wav file is", wav_file)
     if not type(wav_file) == str:
        continue
     # replace .wav with .txt and find its transcript in transcripts folder
@@ -45,9 +42,11 @@ for xl_file in os.listdir(xl_folder):
     # search for it through gdrive
     txt_file = g_drive_access(txt_folder, txt_file)
 #    # check if current path is a file
+    print(file_exists(os.path.join(txt_folder, txt_file)))
     if not type(txt_file) == str:
        continue
     elif file_exists(os.path.join(txt_folder, txt_file)):
+        print("found both")
         # append from gold standard annotations
         b_len.extend(lens)
         b_ons.extend(onsets)
@@ -80,14 +79,16 @@ for xl_file in os.listdir(xl_folder):
         boundaries = vad.chunk(wav)
         # get the sample rate
         signal, fs = torchaudio.load(wav)
-        cnt = 0
         # detect speech overlap
+        #import sounddevice as sd
         for (begin, end) in boundaries:
-            chunk = signal[0][int(float(begin1)*fs): int(float(end1)*fs)]
-            interruption_details, overlap = vad.process_vad(chunk, fs, enroll_dict)
-            # if are not the same speaker
-            if overlap:
-                f.write(f"{interruption_details[0]} {interruption_details[1]} {interruption_details[2]}\n")
+            chunk = signal[0][int(float(begin)*fs): int(float(end)*fs)]
+            #print(begin, end)   
+            #sd.play(chunk, fs)
+            interruption_details = vad.process_vad(chunk, fs, enroll_dict, begin)
+            if len(interruption_details) > 1:
+                for (i, o, l) in interruption_details[1:]:
+                    f.write(f"{i} {o} {l}\n")
 
 #fig, ax = plt.subplots(figsize =(10, 7))
 #ax.hist(b_len)
