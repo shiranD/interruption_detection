@@ -8,7 +8,7 @@ from vad_class import VADer
 from enrollment import enroll_speakers
 from process_xl import processXL
 from matplotlib import pyplot as plt
-from g_files import g_drive_access
+from retrieve_matching_files import file_matcher
 from csv import reader
 
 wav_folder = "../wav/"
@@ -34,13 +34,13 @@ for xl_file in os.listdir(xl_folder):
     # find wav and transcript
     wav_file = base_name+".wav"
     # search for it through gdrive
-    wav_file = g_drive_access(wav_folder, wav_file)
+    wav_file = file_matcher(wav_folder, wav_file)
     if not type(wav_file) == str:
        continue
     # replace .wav with .txt and find its transcript in transcripts folder
     txt_file = "transcript_diarized_timestamped_"+re.sub(".wav", ".txt", wav_file)
     # search for it through gdrive
-    txt_file = g_drive_access(txt_folder, txt_file)
+    txt_file = file_matcher(txt_folder, txt_file)
 #    # check if current path is a file
     print(file_exists(os.path.join(txt_folder, txt_file)))
     if not type(txt_file) == str:
