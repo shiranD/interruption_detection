@@ -5,13 +5,19 @@ import pdb
 
 def g_drive_access(local_folder, fname):
 #    pdb.set_trace()
-    fname = (fname.replace('-','_')).lower()
-    fname = fname.replace('__','_')
+    
     for file1 in os.listdir(local_folder):
-        file1 = (file1.replace('-','_')).lower()
-        file1 = file1.replace('__','_')
         if file1 == fname:
+            print("found ", fname)
             return fname
+    fname_o = (fname.replace('-','_')).lower()
+    fname_o = fname_o.replace('__','_')
+    for file1 in os.listdir(local_folder):
+        file1_o = (file1.replace('-','_')).lower()
+        file1_o = file1_o.replace('__','_')
+        if file1_o == fname_o:
+            print("found ", file1)
+            return file1
     return None
 
 def g_drive_all(local_download_path, flag):
