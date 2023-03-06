@@ -22,7 +22,7 @@ parser.add_argument('--txt', type=str, help='folder of human transcripts')
 parser.add_argument('--wav', type=str, help='folder of the wav files')
 parser.add_argument('--enroll', type=str, help='folder of speakers enrollments types')
 parser.add_argument('--xl', type=str, help='folder of TBD interruption types (not used)')
-parser.add_argument('--speaker_similarity_th', type=float, default=0.2, nargs='?', help='speaker similarity threshold')
+parser.add_argument('--speaker_similarity_th', type=float, default=0.99, nargs='?', help='speaker similarity threshold')
 parser.add_argument('--short_turn_th', type=float, default=0.2, nargs='?', help='short turn threshold')
 parser.add_argument('--window_size', type=float, default=0.5, nargs='?', help='processing window size')
 parser.add_argument('--kernel_size', type=int, default=5, nargs='?', help='kernel size')
@@ -40,6 +40,8 @@ def process(time):
     time = int(hr)*60*60+int(mn)*60+float(sc)
     return time
 print("window size is ", args.window_size)
+print("cos th is ", args.speaker_similarity_th)
+print("kernel is ", args.kernel_size)
 
 results_file = str(args.window_size)+"_"+str(args.kernel_size)+"_"+str(args.speaker_similarity_th)+".txt"
 f = open(os.path.join(args.outputdir, results_file), "w")
@@ -107,8 +109,8 @@ for xl_file in os.listdir(args.xl):
                    names.append(name)
             names = set(names)
 #        for approach in ['composition_single', 'pyaudio_single', 'composition', 'pyaudio']:
-        for approach in ['pyaudio_xvec']:
-        #for approach in ['composition']:
+#        for approach in ['pyaudio_xvec']:
+        for approach in ['composition_single', 'composition_gf', 'composition_f', 'pyaudio_xvec', 'pyaudio_xvec_single']:
             enroll_dict = enroll_speakers(names, approach, args.enroll)
             f.write(approach+" annotations")
             f.write("\n")
