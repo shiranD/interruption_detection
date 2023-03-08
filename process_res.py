@@ -12,7 +12,7 @@ fname="0.5_5_toy_0.99.txt"
 parser = argparse.ArgumentParser(description='Interruption Detection')
 parser.add_argument('--outputdir', type=str, help='path to retreive raw results')
 parser.add_argument('--inputdir', type=str, help='path to save the stats results')
-parser.add_argument('--speaker_similarity_th', type=float, default=0.99, nargs='?', help='speaker similarity threshold')
+parser.add_argument('--speaker_similarity_th', type=float, default=0.2, nargs='?', help='speaker similarity threshold')
 parser.add_argument('--window_size', type=float, default=0.5, nargs='?', help='processing window size')
 parser.add_argument('--kernel_size', type=int, default=5, nargs='?', help='kernel size')
 args = parser.parse_args()
@@ -60,7 +60,7 @@ with open(os.path.join(args.inputdir, results_file), 'r') as g:
     c_type_spk_p_session=defaultdict(lambda: defaultdict(int))
 
     for line in g.readlines():
-        print(line)
+        #print(line)
         if 'Crystal' in line:
             line = line.strip()
             session = line.split("s C")[1]
@@ -70,6 +70,7 @@ with open(os.path.join(args.inputdir, results_file), 'r') as g:
         elif "pyaudio" in line or "composition" in line:
             flag=2
             approach=line.split()[0]
+            print(approach)
             continue
         elif line == "\n" and flag == 2:
             # percision
@@ -136,9 +137,10 @@ with open(os.path.join(args.inputdir, results_file), 'r') as g:
                        if C==1:
                            c_type_spk[approach]+=1
                            c_type_spk_p_session[approach][session]+=1 
-for approach in ["composition_f", "composition_gf", "composition_single", "pyaudio_xvec", "pyaudio_xvec_single"]:#, "pyaudio_ecapa_single", "pyaudio_ecapa"]:
-#for approach in ["composition", "pyaudio", "composition_single", "pyaudio_single"]:
+#for approach in ["composition_f", "composition_gf", "composition_single", "pyaudio_xvec", "pyaudio_xvec_single"]:
+for approach in ["pyaudio_ecapa_single", "pyaudio_ecapa"]:
     # percision
+    print(approach)
     gold_events = id_events["gold"]
     id_p[approach]=c_id_events[approach]/gold_events
     types_p[approach]=c_type[approach]/gold_events
@@ -152,17 +154,18 @@ for approach in ["composition_f", "composition_gf", "composition_single", "pyaud
         speaker_r[approach]=c_speaker[approach]/approach_events
         type_spk_r[approach]=c_type_spk[approach]/approach_events
     f.write("\n\n"+approach+" approach\n")
-    f.write("recall of interruption events:\t"+str(id_p[approach]))
-    f.write("\nrecall of types:\t"+str(types_p[approach]))
-    f.write("\nrecall of speakers:\t"+str(speaker_p[approach]))
-    f.write("\nrecall of types and speakers:\t"+str(type_spk_p[approach]))
-    f.write("\nprecision of interruption events:\t"+str(id_r[approach]))
-    f.write("\nprecision of types:\t"+str(types_r[approach]))
-    f.write("\nprecision of speakers:\t"+str(speaker_r[approach]))
-    f.write("\nprecision of types and speakers:\t"+str(type_spk_r[approach]))
+    #f.write("recall of interruption events:\t"+str(id_p[approach]))
+    #f.write("\nrecall of types:\t"+str(types_p[approach]))
+    #f.write("\nrecall of speakers:\t"+str(speaker_p[approach]))
+    #f.write("\nrecall of types and speakers:\t"+str(type_spk_p[approach]))
+    #f.write("\nprecision of interruption events:\t"+str(id_r[approach]))
+    #f.write("\nprecision of types:\t"+str(types_r[approach]))
+    #f.write("\nprecision of speakers:\t"+str(speaker_r[approach]))
+    #f.write("\nprecision of types and speakers:\t"+str(type_spk_r[approach]))
     # per session
     sessions = c_id_events_p_session[approach].keys()
     n_sessions = len(sessions)
+    print(n_sessions, "sessions")
     c_id_s = 0
     c_spk_s = 0
     c_type_s = 0

@@ -46,7 +46,7 @@ class VADer:
         if 'pyaudio_ecapa' in self.approach:
             classifier = EncoderClassifier.from_hparams(source="speechbrain/spkrec-ecapa-voxceleb", savedir="pretrained_models/spkrec-ecapa-voxceleb")
             self.verifier = SpeakerRecognition.from_hparams(source="speechbrain/spkrec-ecapa-voxceleb", savedir="pretrained_models/spkrec-ecapa-voxceleb")
-        if 'pyaudio_xvec' in self.approach:
+        elif 'pyaudio_xvec' in self.approach:
             classifier = EncoderClassifier.from_hparams(source="speechbrain/spkrec-xvect-voxceleb", savedir="pretrained_models/spkrec-xvect-voxceleb")
             self.verifier = SpeakerRecognition.from_hparams(source="speechbrain/pretrained_models/spkrec-xvect-voxceleb", savedir="pretrained_models/spkrec-xvect-voxceleb")
         elif 'composition' in self.approach:
@@ -103,22 +103,25 @@ class VADer:
         for speaker in self.sp_dict.keys():
             for emb in embs:
                 if 'composition' in self.approach:
-                    original[speaker]+=cos(self.sp_dict[speaker], emb)
+                    original[speaker]+=[float(cos(self.sp_dict[speaker], emb))]
                 if 'pyaudio' in self.approach:
 #                    original[speaker]+=self.verifier.similarity(self.sp_dict[speaker], emb)
                     original[speaker]+=[float(self.verifier.similarity(self.sp_dict[speaker], emb))]
         # smoothing
-        for speaker in self.sp_dict.keys():
-            speaker_dists = original[speaker]
-            for j, dist in enumerate(speaker_dists):
-                #print("stretch", len(speaker_dists[j:]), stretch)
-                if j < stretch or len(speaker_dists[j:])<=stretch:
-                    smooth[speaker]+=[dist]
-                else:
-                #   print(-stretch+j)
-                #   print(j, len(speaker_dists[j:]))
-                   ker_sum = [speaker_dists[-stretch+m+j] for m in range(self.kernel)]
-                   smooth[speaker]+=[float(sum(ker_sum)/self.kernel)]
+        if self.kernel==0:
+            smooth=original
+        else:
+            for speaker in self.sp_dict.keys():
+                speaker_dists = original[speaker]
+                for j, dist in enumerate(speaker_dists):
+                    #print("stretch", len(speaker_dists[j:]), stretch)
+                    if j < stretch or len(speaker_dists[j:])<=stretch:
+                        smooth[speaker]+=[dist]
+                    else:
+                    #   print(-stretch+j)
+                    #   print(j, len(speaker_dists[j:]))
+                       ker_sum = [speaker_dists[-stretch+m+j] for m in range(self.kernel)]
+                       smooth[speaker]+=[float(sum(ker_sum)/self.kernel)]
 
         # choosing the closest speaker of the smooth outcome
         for n, (start_time, end_time) in enumerate(times):

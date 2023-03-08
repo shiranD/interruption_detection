@@ -10,8 +10,10 @@ from torch import nn
 import pdb
 
 def enroll_speakers(names, approach, enroll_path):
-    classifier = EncoderClassifier.from_hparams(source="speechbrain/spkrec-xvect-voxceleb", savedir="pretrained_models/spkrec-xvect-voxceleb")
-#    classifier = EncoderClassifier.from_hparams(source="speechbrain/spkrec-ecapa-voxceleb", savedir="pretrained_models/spkrec-ecapa-voxceleb")
+    if 'pyaudio_xvec' in approach:
+        classifier = EncoderClassifier.from_hparams(source="speechbrain/spkrec-xvect-voxceleb", savedir="pretrained_models/spkrec-xvect-voxceleb")
+    if 'pyaudio_ecapa' in approach:
+        classifier = EncoderClassifier.from_hparams(source="speechbrain/spkrec-ecapa-voxceleb", savedir="pretrained_models/spkrec-ecapa-voxceleb")
     speakers_dict = {}
     for spk1 in names:
         fname = os.path.join(enroll_path, spk1)
@@ -46,10 +48,15 @@ def enroll_speakers(names, approach, enroll_path):
                     if 'pyaudio' in approach:
                         embeddings = classifier.encode_batch(signal)
                         embeddings = embeddings.squeeze(0)
-                    elif 'composition' in approach:
+                    elif 'composition_gf' in approach:
                         g_net = get_g_net()
                         g_net.eval()
                         embeddings =g_net(speakers_dict[spk1], speakers_dict[spk2])
+                    elif 'composition_f' in approach:
+                        f_net = get_f_net()
+                        f_net.eval()
+                        signal = signal.transpose(1, 0).unsqueeze(0)
+                        embeddings =f_net(signal)
                     embeddings = nn.functional.normalize(embeddings, p=2)
                     speakers_dict[spk1+"_"+spk2]=embeddings
             else:
