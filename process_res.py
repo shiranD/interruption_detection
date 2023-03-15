@@ -14,7 +14,7 @@ parser.add_argument('--outputdir', type=str, help='path to retreive raw results'
 parser.add_argument('--inputdir', type=str, help='path to save the stats results')
 parser.add_argument('--speaker_similarity_th', type=float, default=0.2, nargs='?', help='speaker similarity threshold')
 parser.add_argument('--window_size', type=float, default=0.5, nargs='?', help='processing window size')
-parser.add_argument('--kernel_size', type=int, default=5, nargs='?', help='kernel size')
+parser.add_argument('--kernel_size', type=int, default=3, nargs='?', help='kernel size')
 args = parser.parse_args()
 print(args)
 
@@ -71,6 +71,7 @@ with open(os.path.join(args.inputdir, results_file), 'r') as g:
             flag=2
             approach=line.split()[0]
             print(approach)
+            #pdb.set_trace()
             continue
         elif line == "\n" and flag == 2:
             # percision
@@ -137,8 +138,8 @@ with open(os.path.join(args.inputdir, results_file), 'r') as g:
                        if C==1:
                            c_type_spk[approach]+=1
                            c_type_spk_p_session[approach][session]+=1 
-#for approach in ["composition_f", "composition_gf", "composition_single", "pyaudio_xvec", "pyaudio_xvec_single"]:
-for approach in ["pyaudio_ecapa_single", "pyaudio_ecapa"]:
+for approach in ["composition_f","pyaudio_xvec", "pyaudio_xvec_single", "composition_gf", "composition_single"]:
+#for approach in ["pyaudio_ecapa_single", "pyaudio_ecapa"]:
     # percision
     print(approach)
     gold_events = id_events["gold"]
@@ -166,33 +167,34 @@ for approach in ["pyaudio_ecapa_single", "pyaudio_ecapa"]:
     sessions = c_id_events_p_session[approach].keys()
     n_sessions = len(sessions)
     print(n_sessions, "sessions")
-    c_id_s = 0
-    c_spk_s = 0
-    c_type_s = 0
-    c_type_spk_s = 0
-    rc_s_id = 0
-    rc_s_type = 0
-    rc_s_spk = 0
-    rc_s_type_spk = 0
-    pr_s_id = 0
-    pr_s_type = 0
-    pr_s_spk = 0
-    pr_s_type_spk = 0
-    for session in sessions:
-        c_id_s+= c_id_events_p_session[approach][session]
-        c_spk_s+=c_speaker_p_session[approach][session]
-        c_type_s+=c_type_p_session[approach][session]
-        c_type_spk_s+=c_type_spk_p_session[approach][session]
-        rc_s_id+=c_id_events_p_session[approach][session]/id_events_p_session["gold"][session]
-        rc_s_type+=c_type_p_session[approach][session]/id_events_p_session["gold"][session]
-        rc_s_spk+=c_speaker_p_session[approach][session]/id_events_p_session["gold"][session]
-        rc_s_type_spk+=c_type_spk_p_session[approach][session]/id_events_p_session["gold"][session]
-        if id_events_p_session[approach][session]:
-            pr_s_id+=c_id_events_p_session[approach][session]/id_events_p_session[approach][session]
-            pr_s_type+=c_type_p_session[approach][session]/id_events_p_session[approach][session]
-            pr_s_spk+=c_speaker_p_session[approach][session]/id_events_p_session[approach][session]
-            pr_s_type_spk+=c_type_spk_p_session[approach][session]/id_events_p_session[approach][session]
-        print("SPEAKERS",session, c_speaker_p_session[approach][session])     
+    if n_sessions:
+        c_id_s = 0
+        c_spk_s = 0
+        c_type_s = 0
+        c_type_spk_s = 0
+        rc_s_id = 0
+        rc_s_type = 0
+        rc_s_spk = 0
+        rc_s_type_spk = 0
+        pr_s_id = 0
+        pr_s_type = 0
+        pr_s_spk = 0
+        pr_s_type_spk = 0
+        for session in sessions:
+            c_id_s+= c_id_events_p_session[approach][session]
+            c_spk_s+=c_speaker_p_session[approach][session]
+            c_type_s+=c_type_p_session[approach][session]
+            c_type_spk_s+=c_type_spk_p_session[approach][session]
+            rc_s_id+=c_id_events_p_session[approach][session]/id_events_p_session["gold"][session]
+            rc_s_type+=c_type_p_session[approach][session]/id_events_p_session["gold"][session]
+            rc_s_spk+=c_speaker_p_session[approach][session]/id_events_p_session["gold"][session]
+            rc_s_type_spk+=c_type_spk_p_session[approach][session]/id_events_p_session["gold"][session]
+            if id_events_p_session[approach][session]:
+                pr_s_id+=c_id_events_p_session[approach][session]/id_events_p_session[approach][session]
+                pr_s_type+=c_type_p_session[approach][session]/id_events_p_session[approach][session]
+                pr_s_spk+=c_speaker_p_session[approach][session]/id_events_p_session[approach][session]
+                pr_s_type_spk+=c_type_spk_p_session[approach][session]/id_events_p_session[approach][session]
+            print("SPEAKERS",session, c_speaker_p_session[approach][session])     
     f.write("\n\nmicro f-score (TFs/all)\n")
     # percision
    # f.write("\nrecall of interruption:\t" +str(c_id_s/gold_events))
@@ -221,7 +223,14 @@ for approach in ["pyaudio_ecapa_single", "pyaudio_ecapa"]:
    # f.write("\navg percision of sessions of types:\t"+str(pr_s_type/n_sessions))
    # f.write("\navg percision of sessions of speaker:\t"+str(pr_s_spk/n_sessions))
    # f.write("\navg percision of sessions of type spk:\t"+str(pr_s_type_spk/n_sessions))
-    f.write("\navg_sessions interruption:\t"+str((pr_s_id/n_sessions)*(rc_s_id/n_sessions)/((pr_s_id/n_sessions)+(rc_s_id/n_sessions))))
-    f.write("\navg_sessions types:\t"+str((pr_s_type/n_sessions)*(rc_s_type/n_sessions)/((pr_s_type/n_sessions)+(rc_s_type/n_sessions))))
-    f.write("\navg_ sessions speaker:\t"+str((pr_s_spk/n_sessions)*(rc_s_spk/n_sessions)/((pr_s_spk/n_sessions)+(rc_s_spk/n_sessions))))
-    f.write("\navg_ sessions types_speaker:\t"+str((pr_s_type_spk/n_sessions)*(rc_s_type_spk/n_sessions)/((pr_s_type_spk/n_sessions)+(rc_s_type_spk/n_sessions))))
+    if n_sessions:
+        try:
+            f.write("\navg_sessions interruption:\t"+str((pr_s_id/n_sessions)*(rc_s_id/n_sessions)/((pr_s_id/n_sessions)+(rc_s_id/n_sessions))))
+            f.write("\navg_sessions types:\t"+str((pr_s_type/n_sessions)*(rc_s_type/n_sessions)/((pr_s_type/n_sessions)+(rc_s_type/n_sessions))))
+        except:
+            pass
+        try:
+            f.write("\navg_ sessions speaker:\t"+str((pr_s_spk/n_sessions)*(rc_s_spk/n_sessions)/((pr_s_spk/n_sessions)+(rc_s_spk/n_sessions))))
+            f.write("\navg_ sessions types_speaker:\t"+str((pr_s_type_spk/n_sessions)*(rc_s_type_spk/n_sessions)/((pr_s_type_spk/n_sessions)+(rc_s_type_spk/n_sessions))))
+        except:
+            pass
