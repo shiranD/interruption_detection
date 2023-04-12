@@ -30,8 +30,7 @@ odir_raw=results/${var}/raw
 odir_stats=results/${var}/stats
 mkdir -p $odir_raw
 mkdir -p $odir_stats
-config=ecapa_config
-#config=config
+config=config
 
 # Extract the window size for the current $SLURM_ARRAY_TASK_ID
 #window=$(awk -v ArrayTaskID=$SLURM_ARRAY_TASK_ID '$1==ArrayTaskID {print $2}' $config)
